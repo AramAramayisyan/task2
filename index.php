@@ -21,22 +21,22 @@ session_start();
                     <form action="registration" method="POST" enctype="multipart/form-data" id="registrationForm">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name</label>
-                            <input type="text" class="form-control" id="name" name="name" value = <?= $_SESSION['name']?>>
+                            <input type="text" class="form-control" id="name" name="name" value = <?= isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : '' ?>>
                         </div>
 
                         <div class="mb-3">
                             <label for="email" class="form-label">Email address</label>
-                            <input type="text" class="form-control" id="email" name="email" value = <?= $_SESSION['email']?> >
+                            <input type="text" class="form-control" id="email" name="email" value = <?= isset($_SESSION['email']) ? htmlspecialchars($_SESSION['email']) : '' ?> >
                         </div>
 
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="text" class="form-control" id="password" name="password" value = <?= $_SESSION['password']?> >
+                            <input type="text" class="form-control" id="password" name="password" value = <?= isset($_SESSION['password']) ? htmlspecialchars($_SESSION['password']) : '' ?> >
                         </div>
 
                         <div class="mb-3">
                             <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="text" class="form-control" id="confirm_password" name="confirm_password" value = <?= $_SESSION['confirm_password']?> >
+                            <input type="text" class="form-control" id="confirm_password" name="confirm_password" value = <?= isset($_SESSION['confirm_password']) ? htmlspecialchars($_SESSION['confirm_password']) : '' ?> >
                         </div>
 
                         <div class="mb-3">
@@ -44,10 +44,19 @@ session_start();
                             <input class="form-control" type="file" id="image" name="image" accept="image/*" >
                         </div>
 
-                        <button name = "register" type="submit" class="btn btn-primary w-100">Register</button>
+                        <button name="submit" type="submit" class="btn btn-primary w-100">Register</button>
                     </form>
-                    <div class="mb-3">
-                        <p><?= $_SESSION['message']?></p>
+                    <div class="mt-3">
+                        <?php
+                        if (isset($_SESSION['message'])) {
+                            echo '<div class="alert alert-info">';
+                            foreach ($_SESSION['message'] as $msg) {
+                                if ($msg) echo '<div>' . htmlspecialchars($msg) . '</div>';
+                            }
+                            echo '</div>';
+                            unset($_SESSION['message']);
+                        }
+                        ?>
                     </div>
                 </div>
             </div>

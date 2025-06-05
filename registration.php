@@ -1,91 +1,140 @@
 <?php
 
-$replyBack = '';
-session_unset();
+class Registration extends Validate
+{
+    public $replyBack;
+    public function start($post = null, $file = null)
+    {
+        if ($post != null) {
+            $this->replyBack['name'] = $this->nameValidate($post['name']);
+            $this->replyBack['email'] = $this->emailValidate($post['email']);
+            $this->replyBack['password'] = $this->passwordValidate($post['password'], $post['confirm_password']);
+        }
+        if ($file != null) {
+            $this->replyBack['image'] = $this->imageUpload($file['image']);
+        }
+        $this->sendMessage($this->replyBack);
+    }
+}
 
-if (isset($_POST['register']) && isset($_FILES['image']['name'])) {
-    $replyBack = 'all is ok';
-    unset($_POST['register']);
-    if (!empty($_POST['name'])) {
+class Validate
+{
+    private $hasName = false;
+    private $hasEmail = false;
+    private $hasPass = false;
 
-        if (strlen($_POST['name']) <= 64) {
-            $_SESSION['name'] = $_POST['name'];
-
-            if (!empty($_POST['email'])) {
-
-                if (filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-                    $_SESSION['email'] = $_POST['email'];
-
-                    if (!empty($_POST['password'])) {
-
-                        if (strlen($_POST['password']) >= 8) {
-
-                            if (preg_match('/[A-Z]/', $_POST['password'])) {
-
-                                if (preg_match('/[a-z]/', $_POST['password'])) {
-
-                                    if (preg_match('/[0-9]/', $_POST['password'])) {
-                                        $_SESSION['password'] = $_POST['password'];
-
-                                        if ($_POST['password'] === $_POST['confirm_password']) {
-                                            $_SESSION['confirm_password'] = $_POST['confirm_password'];
-
-                                            if (!empty($_FILES['image']['name'])) {
-                                                $filename = $_FILES['image']['name'];
-                                                $ext = pathinfo($filename, PATHINFO_EXTENSION);
-
-                                                if ($ext == 'jpg' || $ext == 'png') {
-
-                                                    if ($_FILES['image']['size'] <= 512000) {
-                                                        $imgName = md5(date("Y-m-d H:i:s") . $filename) . '.' . $ext;
-                                                        $path = dirname(__FILE__) . '/uploads/';
-                                                        $src = $path . $imgName;
-
-                                                        if (move_uploaded_file($_FILES['image']['tmp_name'], $src)) {
-                                                            session_unset();
-                                                            $replyBack = 'upload file';
-                                                        } else {
-                                                            $replyBack = 'image no upload';
-                                                        }
-                                                    } else {
-                                                        $replyBack = 'Invalid image size';
-                                                    }
-                                                } else {
-                                                    $replyBack = 'Invalid image form';
-                                                }
-                                            } else {
-                                                $replyBack = 'image field empty';
-                                            }
-                                        } else {
-                                            $replyBack = 'password must match';
-                                        }
-                                    } else {
-                                        $replyBack = 'password must contain at least one number';
-                                    }
-                                } else {
-                                    $replyBack = 'password must contain at least one lowercase letter';
-                                }
-                            } else {
-                                $replyBack = 'password must contain at least one uppercase letter';
-                            }
-                        } else {
-                            $replyBack = 'password length < 8';
-                        }
-                    } else {
-                        $replyBack = 'password empty';
-                    }
-                } else {
-                    $replyBack = 'email is wrong';
-                }
+    public function nameValidate($name)
+    {
+        if (!empty($name)) {
+            $_SESSION['name'] = $name;
+            if (strlen($name) < 64) {
+                $this->hasName = true;
+                return null;
             } else {
-                $replyBack = 'email field empty';
+                return 'name is too long';
             }
         } else {
-            $replyBack = 'name is too long';
+            return 'name is required';
         }
-    } else {
-        $replyBack = 'name field empty';
     }
-    $_SESSION['message'] = $replyBack;
-    header('Location: http://localhost:8000/index.php');
+
+    public function emailValidate($email) {
+        if (!empty($email)) {
+            $_SESSION['email'] = $email;
+            if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->hasEmail = true;
+                return null;
+            } else {
+                return 'email is invalid';
+            }
+        } else {
+            return 'email is required';
+        }
+    }
+
+    public function passwordValidate($password, $confirm_password)
+    {
+        if (empty($password)) {
+            $this->hasPass = true;
+            return 'password is required';
+        }
+
+        if (empty($confirm_password)) {
+            $this->hasPass = true;
+            return 'confirm password is required';
+        }
+
+        if (!$this->hasPass) {
+            $_SESSION['password'] = $password;
+            $_SESSION['confirm_password'] = $confirm_password;
+            if (strlen($password) >= 8) {
+                if (preg_match('/[A-Z]/', $password)) {
+                    if (preg_match('/[a-z]/', $password)) {
+                        if (preg_match('/[0-9]/', $password)) {
+                            if ($password == $confirm_password) {
+                                $this->hasPass = true;
+                                return null;
+                            } else {
+                                return 'password must match';
+                            }
+                        } else{
+                            return 'password must contain at least one number';
+                        }
+                    } else {
+                        return 'password must contain at least one lowercase letter';
+                    }
+                } else {
+                    return 'password must contain at least one uppercase letter';
+                }
+            } else {
+                return 'The number of characters must be greater than eight.';
+            }
+        }
+    }
+
+    public function imageUpload($image)
+    {
+        if (!empty($image['name'])) {
+            $filename = $image['name'];
+            $ext = pathinfo($filename, PATHINFO_EXTENSION);
+            if ($ext == 'jpg' || $ext == 'png') {
+                if ($image['size'] <= 512000) {
+                    $imageName = md5(date("Y-m-d H:i:s") . $filename) . '.' . $ext;
+                    $path = dirname(__FILE__) . '/uploads/';
+                    $src = $path . $imageName;
+                    if ($this->hasName && $this->hasEmail && $this->hasPass) {
+                        if (move_uploaded_file($image['tmp_name'], $src)) {
+                            $_SESSION['image'] = $imageName;
+                            $_SESSION['success'] = true;
+                        } else {
+                            return 'image no upload';
+                        }
+                    }
+                } else {
+                    return 'Invalid image size';
+                }
+            } else {
+                return 'Invalid image form';
+            }
+        } else {
+            return 'image required';
+        }
+    }
+
+    protected function sendMessage($message) {
+        $_SESSION['message'] = $message;
+        if ($_SESSION['success']) {
+            header('Location: http://localhost:8000/user.php');
+
+        } else {
+            header('Location: http://localhost:8000/index.php');
+        }
+    }
+}
+
+if (isset($_POST['submit'])) {
+    session_unset();
+    $registration = new Registration();
+    $registration->start($_POST, $_FILES);
+
 }
