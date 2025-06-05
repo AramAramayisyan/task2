@@ -31,12 +31,12 @@ session_start();
 
                         <div class="mb-3">
                             <label for="password" class="form-label">Password</label>
-                            <input type="text" class="form-control" id="password" name="password" value = <?= isset($_SESSION['password']) ? htmlspecialchars($_SESSION['password']) : '' ?> >
+                            <input type="password" class="form-control" id="password" name="password" value = <?= isset($_SESSION['password']) ? htmlspecialchars($_SESSION['password']) : '' ?> >
                         </div>
 
                         <div class="mb-3">
                             <label for="confirm_password" class="form-label">Confirm Password</label>
-                            <input type="text" class="form-control" id="confirm_password" name="confirm_password" value = <?= isset($_SESSION['confirm_password']) ? htmlspecialchars($_SESSION['confirm_password']) : '' ?> >
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" value = <?= isset($_SESSION['confirm_password']) ? htmlspecialchars($_SESSION['confirm_password']) : '' ?> >
                         </div>
 
                         <div class="mb-3">
