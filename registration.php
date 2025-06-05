@@ -65,7 +65,7 @@ class Validate
             $_SESSION['password'] = $password;
             $_SESSION['confirm_password'] = $confirm_password;
             if (strlen($password) >= 8) {
-                if (preg_match('/[A-Z]/', $password) && preg_match('/[a-z]/', $password) && preg_match('/[0-9]/', $password)) {
+                if (preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).+$/', $password)) {
                     if ($password == $confirm_password) {
                         $this->hasPass = true;
                         return null;
