@@ -1,4 +1,5 @@
 <?php
+include 'configs/config.php';
 
 class Registration extends Validate
 {
@@ -30,12 +31,10 @@ class Validate
             if (strlen($name) < 64) {
                 $this->hasName = true;
                 return null;
-            } else {
-                return 'name is too long';
             }
-        } else {
-            return 'name is required';
+            return 'name is too long';
         }
+        return 'name is required';
     }
 
     public function emailValidate($email) {
@@ -44,12 +43,10 @@ class Validate
             if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
                 $this->hasEmail = true;
                 return null;
-            } else {
-                return 'email is invalid';
             }
-        } else {
-            return 'email is required';
+            return 'email is invalid';
         }
+        return 'email is required';
     }
 
     public function passwordValidate($password, $confirm_password)
@@ -68,27 +65,16 @@ class Validate
             $_SESSION['password'] = $password;
             $_SESSION['confirm_password'] = $confirm_password;
             if (strlen($password) >= 8) {
-                if (preg_match('/[A-Z]/', $password)) {
-                    if (preg_match('/[a-z]/', $password)) {
-                        if (preg_match('/[0-9]/', $password)) {
-                            if ($password == $confirm_password) {
-                                $this->hasPass = true;
-                                return null;
-                            } else {
-                                return 'password must match';
-                            }
-                        } else{
-                            return 'password must contain at least one number';
-                        }
-                    } else {
-                        return 'password must contain at least one lowercase letter';
+                if (preg_match('/[A-Z]/', $password) && preg_match('/[a-z]/', $password) && preg_match('/[0-9]/', $password)) {
+                    if ($password == $confirm_password) {
+                        $this->hasPass = true;
+                        return null;
                     }
-                } else {
-                    return 'password must contain at least one uppercase letter';
+                    return 'password must match';
                 }
-            } else {
-                return 'The number of characters must be greater than eight.';
+                return 'password undefined';
             }
+            return 'The number of characters must be greater than eight.';
         }
     }
 
@@ -97,8 +83,8 @@ class Validate
         if (!empty($image['name'])) {
             $filename = $image['name'];
             $ext = pathinfo($filename, PATHINFO_EXTENSION);
-            if ($ext == 'jpg' || $ext == 'png') {
-                if ($image['size'] <= 512000) {
+            if (in_array($ext, EXT_UPLOAD_IMAGE)) {
+                if ($image['size'] <= SIZE_UPLOAD_IMAGE) {
                     $imageName = md5(date("Y-m-d H:i:s") . $filename) . '.' . $ext;
                     $path = dirname(__FILE__) . '/uploads/';
                     $src = $path . $imageName;
@@ -106,26 +92,21 @@ class Validate
                         if (move_uploaded_file($image['tmp_name'], $src)) {
                             $_SESSION['image'] = $imageName;
                             $_SESSION['success'] = true;
-                        } else {
-                            return 'image no upload';
                         }
+                        return 'image no upload';
                     }
-                } else {
-                    return 'Invalid image size';
                 }
-            } else {
-                return 'Invalid image form';
+                return 'Invalid image size';
             }
-        } else {
-            return 'image required';
+            return 'Invalid image form';
         }
+        return 'image required';
     }
 
     protected function sendMessage($message) {
         $_SESSION['message'] = $message;
         if ($_SESSION['success']) {
             header('Location: http://localhost:8000/user.php');
-
         } else {
             header('Location: http://localhost:8000/index.php');
         }
@@ -136,5 +117,4 @@ if (isset($_POST['submit'])) {
     session_unset();
     $registration = new Registration();
     $registration->start($_POST, $_FILES);
-
 }

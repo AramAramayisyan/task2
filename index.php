@@ -68,3 +68,5 @@ session_start();
 
 <?php
 include 'registration.php';
+include 'configs/config.php';
+
